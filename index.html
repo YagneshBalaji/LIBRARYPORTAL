@@ -633,7 +633,7 @@ const WATERMARK = {
 </div>
 
 <div id="page-reader" class="page no-select">
-  <div class="reader-header">
+  <div class="reader-header" id="reader-header">
     <div class="reader-header-left">
       <button class="reader-back" onclick="closeReader()" title="Back to library">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -645,34 +645,52 @@ const WATERMARK = {
     </div>
     <div class="reader-header-right">
       <div style="position:relative;">
-        <button class="reader-icon-btn" id="reader-search-btn" onclick="toggleReaderSearch()" title="Search in document">
+        <button class="reader-icon-btn" id="reader-search-btn" onclick="toggleReaderSearch()" title="Search in document (/)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
         <div class="reader-search-pop" id="reader-search-pop">
-          <input type="text" id="reader-search-input" placeholder="Find in document…" onkeydown="if(event.key==='Enter')readerSearchNext()"/>
+          <input type="text" id="reader-search-input" placeholder="Find in document…" onkeydown="handleReaderSearchKey(event)"/>
           <span class="reader-search-count" id="reader-search-count"></span>
+          <button class="reader-search-nav-btn" onclick="readerSearchStep(-1)" title="Previous match">&#8249;</button>
+          <button class="reader-search-nav-btn" onclick="readerSearchStep(1)" title="Next match">&#8250;</button>
         </div>
       </div>
-      <button class="reader-icon-btn" id="reader-dark-btn" onclick="toggleReaderDark()" title="Toggle dark mode">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <button class="reader-icon-btn" id="reader-theme-btn" onclick="cycleReaderTheme()" title="Reading theme (T)">
+        <svg id="reader-theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <button class="reader-icon-btn" onclick="toggleReaderFullscreen()" title="Fullscreen">
+      <button class="reader-icon-btn" onclick="toggleReaderFullscreen()" title="Fullscreen (F)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18-5h-3a2 2 0 0 1 2-2M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
       </button>
     </div>
   </div>
+  <div class="reader-progress-track"><div class="reader-progress-fill" id="reader-progress-fill"></div></div>
+
+  <div class="reader-resume-banner" id="reader-resume-banner">
+    <div class="reader-resume-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="reader-resume-text-content">You were on page — last time.</span>
+    </div>
+    <div class="reader-resume-actions">
+      <button class="reader-resume-btn ghost" onclick="dismissResumeBanner(true)">Start Over</button>
+      <button class="reader-resume-btn" onclick="dismissResumeBanner(false)">Resume</button>
+    </div>
+  </div>
 
   <div class="reader-body">
-    <div class="reader-toolbar">
+    <div class="reader-toolbar" id="reader-toolbar">
       <div class="reader-nav-group">
-        <button class="reader-nav-btn" id="reader-prev" onclick="readerPrevPage()">&#8249;</button>
-        <span class="reader-page-info" id="reader-page-info">Page — of —</span>
-        <button class="reader-nav-btn" id="reader-next" onclick="readerNextPage()">&#8250;</button>
+        <button class="reader-nav-btn" id="reader-prev" onclick="readerPrevPage()" title="Previous page (←)">&#8249;</button>
+        <span class="reader-page-info" id="reader-page-info" onclick="openGotoPage()" title="Click to jump to a page">Page — of —</span>
+        <button class="reader-nav-btn" id="reader-next" onclick="readerNextPage()" title="Next page (→)">&#8250;</button>
+      </div>
+      <div class="reader-goto-pop" id="reader-goto-pop">
+        <input type="number" id="reader-goto-input" min="1" placeholder="Page #" onkeydown="if(event.key==='Enter')submitGotoPage()"/>
+        <button class="reader-nav-btn" onclick="submitGotoPage()" title="Go">&#8629;</button>
       </div>
       <div class="reader-nav-group">
-        <button class="reader-nav-btn" onclick="readerZoomOut()">&#8722;</button>
+        <button class="reader-nav-btn" onclick="readerZoomOut()" title="Zoom out (-)">&#8722;</button>
         <span class="reader-zoom-level" id="reader-zoom-level">100%</span>
-        <button class="reader-nav-btn" onclick="readerZoomIn()">&#43;</button>
+        <button class="reader-nav-btn" onclick="readerZoomIn()" title="Zoom in (+)">&#43;</button>
       </div>
     </div>
     <div class="reader-scroll-area" id="reader-scroll-area">
@@ -684,10 +702,15 @@ const WATERMARK = {
       </div>
     </div>
   </div>
-  <div class="reader-footer">WAVES Coaching Center · Protected document · Copy, print & download disabled</div>
+  <div class="reader-footer">
+    <span id="reader-footer-left">WAVES Coaching Center · Protected document</span>
+    <span class="reader-footer-dot">·</span>
+    <span id="reader-footer-time"></span>
+  </div>
 </div>
 
 <div id="toast">
+
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
   <span id="toast-text">Saved</span>
 </div>
