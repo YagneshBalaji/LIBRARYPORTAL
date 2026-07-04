@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
+<title>WAVES Digital Library</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+
+<style media="print">
+  * { display: none !important; visibility: hidden !important; }
+  body::after { display: block !important; visibility: visible !important;
+    content: "Printing is disabled for this library."; font-size: 2rem;
+    text-align: center; margin-top: 40vh; color: #1e3a6e; }
+</style>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS — shared visual language with the WAVES Exam Portal
+═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:        #0f2449;
+  --navy-dark:   #081630;
+  --navy-dim:    #1a3660;
+  --blue:        #2055b0;
+  --blue-vivid:  #2d6bc4;
+  --blue-light:  #e8f1fb;
+  --blue-mid:    #c2d6f5;
+  --gold:        #c8942a;
+  --gold-pale:   #e8b84b;
+  --gold-light:  #fdf3dc;
+  --white:       #ffffff;
+  --off-white:   #f5f8ff;
+  --gray-bg:     #eef2f9;
+  --border:      #cddaee;
+  --border-dark: #a8bed8;
+  --text:        #1a2a4a;
+  --text-mid:    #3d5278;
+  --text-light:  #6b7fa3;
+  --red:         #c0392b;
+  --green:       #1a7a45;
+  --green-light: #e6f6ed;
+
+  /* subject accent palette — used as "book spine" identifiers */
+  --sub-physics:   #2d6bc4;
+  --sub-chemistry: #1a9e6f;
+  --sub-maths:     #c8942a;
+  --sub-biology:   #a855c9;
+  --sub-english:   #c0392b;
+  --sub-default:   #6b7fa3;
+
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'Fira Code', monospace;
+
+  --radius:    14px;
+  --radius-sm: 9px;
+  --radius-lg: 22px;
+  --shadow:    0 4px 24px rgba(30,58,110,0.10);
+  --shadow-sm: 0 2px 8px rgba(30,58,110,0.08);
+  --shadow-lg: 0 20px 50px rgba(15,36,73,0.16);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html { scroll-behavior: smooth; }
+html, body {
+  min-height: 100%; background: var(--off-white); color: var(--text);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+  overflow-x: hidden;
+}
+body.reader-open { overflow: hidden; }
+img { max-width: 100%; display: block; }
+button { font-family: inherit; }
+
+::selection { background: var(--blue-mid); color: var(--navy); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+.page { display: none; min-height: 100vh; }
+.page.active { display: flex; flex-direction: column; animation: pageIn 0.5s var(--ease); }
+@keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.no-select, .no-select * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px; min-height: 46px;
+  border: 1.5px solid var(--border-dark); border-radius: var(--radius-sm);
+  background: var(--white); color: var(--navy);
+  font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  letter-spacing: 0.01em; cursor: pointer; transition: all 0.2s var(--ease);
+  white-space: nowrap; -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { background: var(--gray-bg); border-color: var(--navy-dim); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.98); }
+.btn-primary { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 600; }
+.btn-primary:hover { background: var(--navy-dark); border-color: var(--navy-dark); box-shadow: 0 8px 20px rgba(15,36,73,0.28); }
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); box-shadow: none; }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-mid); }
+.field input {
+  background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 14px 16px; color: var(--text); font-family: var(--font-body); font-size: 16px;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
+}
+.field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(45,107,196,0.15); }
+.field input::placeholder { color: var(--text-light); }
+
+.error-msg { display: none; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; color: var(--red); font-size: 13px; }
+.error-msg.visible { display: block; animation: shakeX 0.4s var(--ease); }
+@keyframes shakeX { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* ═══════════════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════════════ */
+#page-login { padding: 0; min-height: 100vh; background: var(--navy-dark); }
+.login-split { display: grid; grid-template-columns: 1.05fr 1fr; min-height: 100vh; width: 100%; }
+@media (max-width: 900px) { .login-split { grid-template-columns: 1fr; } .login-panel-left { display: none; } }
+
+.login-panel-left {
+  position: relative; overflow: hidden;
+  background: linear-gradient(165deg, #0a1c3d 0%, #0f2449 45%, #162d5c 100%);
+  display: flex; flex-direction: column; justify-content: space-between; padding: 56px 54px;
+}
+.login-panel-left::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 25% 20%, rgba(45,107,196,0.16) 0%, transparent 55%),
+              radial-gradient(ellipse at 80% 85%, rgba(200,148,42,0.10) 0%, transparent 55%);
+}
+.lib-shelf-art { position: absolute; right: -60px; bottom: -40px; width: 460px; opacity: 0.5; pointer-events: none; }
+.login-brand-row { position: relative; z-index: 2; display: flex; align-items: center; gap: 14px; }
+.login-brand-logo { width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(200,148,42,0.35); object-fit: cover; background: rgba(255,255,255,0.05); padding: 2px; }
+.login-brand-name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+.login-brand-sub  { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+.login-left-content { position: relative; z-index: 2; }
+.login-left-badge {
+  display: inline-flex; align-items: center; gap: 8px; background: rgba(200,148,42,0.12);
+  border: 1px solid rgba(200,148,42,0.28); border-radius: 100px; padding: 6px 14px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-pale); margin-bottom: 26px;
+}
+.login-left-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-pale); display: inline-block; }
+.login-left-headline { font-family: var(--font-display); font-size: clamp(2.4rem, 4vw, 3.5rem); font-weight: 600; color: #fff; line-height: 1.18; margin-bottom: 18px; }
+.login-left-headline em { color: var(--gold-pale); font-style: normal; }
+.login-left-tagline { font-size: 13.5px; color: rgba(255,255,255,0.45); line-height: 1.85; max-width: 380px; }
+.login-left-stats { position: relative; z-index: 2; display: flex; gap: 34px; flex-wrap: wrap; margin-top: 30px;}
+.login-stat-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; color: #fff; }
+.login-stat-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px;}
+
+.login-panel-right { background: var(--white); display: flex; align-items: center; justify-content: center; padding: 60px 56px; }
+@media (max-width: 900px) { .login-panel-right { padding: 40px 24px; min-height: 100vh; background: var(--navy-dark); } }
+.login-form-inner { width: 100%; max-width: 400px; }
+.login-mobile-brand { display: none; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 36px; text-align: center; }
+@media (max-width: 900px) { .login-mobile-brand { display: flex; } }
+.login-mobile-logo { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(200,148,42,0.4); background: rgba(255,255,255,0.06); }
+.login-mobile-brandname { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: #fff; }
+.login-mobile-tagline { font-size: 10.5px; color: rgba(255,255,255,0.4); letter-spacing: 0.14em; text-transform: uppercase; }
+
+.login-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+@media (max-width: 900px) { .login-eyebrow { color: var(--gold-pale); } }
+.login-form-title { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--navy); }
+@media (max-width: 900px) { .login-form-title { color: #fff; } }
+.login-form-subtitle { font-size: 13px; color: var(--text-light); margin-top: 6px; margin-bottom: 28px; }
+@media (max-width: 900px) { .login-form-subtitle { color: rgba(255,255,255,0.45); } }
+.login-fields { display: flex; flex-direction: column; gap: 18px; margin-bottom: 22px; }
+@media (max-width: 900px) {
+  .login-fields .field label { color: rgba(255,255,255,0.5); }
+  .login-fields .field input { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); color: #fff; }
+  .login-fields .field input::placeholder { color: rgba(255,255,255,0.25); }
+  .login-fields .field input:focus { border-color: var(--blue-vivid); background: rgba(255,255,255,0.09); }
+}
+.login-cta {
+  width: 100%; padding: 16px 24px; min-height: 54px; background: var(--navy); border: none;
+  border-radius: var(--radius-sm); color: #fff; font-size: 15px; font-weight: 600;
+  letter-spacing: 0.03em; cursor: pointer; transition: all 0.2s var(--ease);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 4px 20px rgba(15,36,73,0.25);
+}
+.login-cta:hover { background: var(--navy-dim); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(15,36,73,0.3); }
+.login-cta:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+@media (max-width: 900px) { .login-cta { background: linear-gradient(135deg, var(--blue) 0%, #1a3fa8 100%); box-shadow: 0 8px 32px rgba(32,85,176,0.4); } }
+.login-footer-note { text-align: center; font-size: 11px; color: var(--text-light); line-height: 1.7; padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--border); }
+@media (max-width: 900px) { .login-footer-note { color: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.08); } }
+
+.login-verifying { display: none; flex-direction: column; align-items: center; text-align: center; gap: 18px; }
+.login-verifying.active { display: flex; }
+.login-verifying .spin-ring { width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--blue); animation: spin 0.85s linear infinite; }
+@media (max-width: 900px) { .login-verifying .spin-ring { border-color: rgba(255,255,255,0.15); border-top-color: var(--blue-vivid); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.login-verifying-text { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-light); }
+@media (max-width: 900px) { .login-verifying-text { color: rgba(255,255,255,0.4); } }
+
+/* ═══════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════ */
+.navbar {
+  position: sticky; top: 0; z-index: 500; background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--border); padding: 0 32px; height: 72px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+@media (max-width: 720px) { .navbar { padding: 0 16px; height: 64px; } }
+.nav-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.nav-logo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blue-mid); flex-shrink: 0; }
+.nav-brandblock { display: flex; flex-direction: column; line-height: 1.15; }
+.nav-brand-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--navy); white-space: nowrap; }
+.nav-brand-sub { font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-light); }
+@media (max-width: 560px) { .nav-brandblock { display: none; } }
+
+.nav-search-wrap { flex: 1; max-width: 440px; display: flex; align-items: center; gap: 10px; background: var(--gray-bg); border: 1.5px solid transparent; border-radius: 100px; padding: 10px 18px; transition: all 0.2s var(--ease); }
+.nav-search-wrap:focus-within { background: var(--white); border-color: var(--blue-mid); box-shadow: 0 0 0 4px rgba(45,107,196,0.10); }
+.nav-search-wrap svg { width: 17px; height: 17px; color: var(--text-light); flex-shrink: 0; }
+.nav-search-wrap input { border: none; background: transparent; outline: none; font-size: 13.5px; color: var(--text); width: 100%; font-family: var(--font-body); }
+.nav-search-wrap input::placeholder { color: var(--text-light); }
+@media (max-width: 720px) { .nav-search-wrap { max-width: none; } }
+
+.nav-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.nav-student { display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 100px; background: var(--gray-bg); }
+.nav-student-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.nav-student-info { display: flex; flex-direction: column; line-height: 1.2; }
+.nav-student-name { font-size: 12.5px; font-weight: 700; color: var(--navy); }
+.nav-student-class { font-size: 10px; color: var(--text-light); font-weight: 600; }
+@media (max-width: 560px) { .nav-student-info { display: none; } .nav-student { padding: 6px; } }
+.nav-logout { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-mid); transition: all 0.2s var(--ease); }
+.nav-logout:hover { background: #fef2f2; border-color: #fca5a5; color: var(--red); }
+.nav-logout svg { width: 17px; height: 17px; }
+
+.subject-strip { position: sticky; top: 72px; z-index: 400; background: rgba(245,248,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.subject-strip::-webkit-scrollbar { display: none; }
+@media (max-width: 720px) { .subject-strip { padding: 0 16px; top: 64px; } }
+.subject-pill { flex-shrink: 0; padding: 13px 4px; margin: 0 10px; border-bottom: 2.5px solid transparent; font-size: 13px; font-weight: 600; color: var(--text-light); cursor: pointer; transition: all 0.2s var(--ease); white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+.subject-pill:hover { color: var(--navy); }
+.subject-pill.active { color: var(--navy); border-bottom-color: var(--gold); }
+.subject-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD / HERO
+═══════════════════════════════════════════════ */
+.lib-main { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 32px 80px; }
+@media (max-width: 720px) { .lib-main { padding: 0 16px 60px; } }
+
+.hero {
+  position: relative; overflow: hidden; margin: 32px 0 44px; padding: 56px 48px;
+  border-radius: var(--radius-lg); background: linear-gradient(155deg, var(--navy-dark) 0%, var(--navy) 55%, var(--navy-dim) 100%);
+  color: #fff; box-shadow: var(--shadow-lg);
+}
+@media (max-width: 720px) { .hero { padding: 36px 24px; margin: 20px 0 32px; } }
+.hero::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 85% 0%, rgba(200,148,42,0.18) 0%, transparent 55%),
+              radial-gradient(ellipse at 5% 100%, rgba(45,107,196,0.20) 0%, transparent 55%);
+}
+.hero-eyebrow { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-pale); margin-bottom: 18px; animation: fadeUp 0.6s var(--ease) both; }
+.hero-eyebrow::before { content:''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-pale); }
+.hero-title { position: relative; z-index: 2; font-family: var(--font-display); font-weight: 600; font-size: clamp(2.1rem, 4.4vw, 3.3rem); line-height: 1.14; max-width: 640px; animation: fadeUp 0.6s 0.08s var(--ease) both; }
+.hero-title em { font-style: normal; color: var(--gold-pale); }
+.hero-sub { position: relative; z-index: 2; font-size: 14.5px; color: rgba(255,255,255,0.55); max-width: 500px; margin-top: 16px; line-height: 1.75; animation: fadeUp 0.6s 0.16s var(--ease) both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+.hero-stats { position: relative; z-index: 2; display: flex; gap: 36px; margin-top: 34px; flex-wrap: wrap; animation: fadeUp 0.6s 0.24s var(--ease) both; }
+.hero-stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; }
+.hero-stat-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 44px 0 20px; gap: 12px; }
+.section-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+.section-sub { font-size: 12px; color: var(--text-light); font-weight: 500; }
+
+/* Continue reading — signature ribbon-bookmark cards */
+.continue-scroll { display: flex; gap: 18px; overflow-x: auto; padding: 4px 4px 14px; scrollbar-width: none; }
+.continue-scroll::-webkit-scrollbar { display: none; }
+.continue-card {
+  flex: 0 0 260px; position: relative; background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px 20px 20px; cursor: pointer; overflow: hidden;
+  transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease); box-shadow: var(--shadow-sm);
+}
+.continue-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.continue-ribbon {
+  position: absolute; top: 0; right: 22px; width: 26px; height: 44px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+.continue-cat { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
+.continue-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--navy); line-height: 1.28; margin-bottom: 14px; padding-right: 20px; }
+.continue-progress-track { height: 5px; background: var(--gray-bg); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+.continue-progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s var(--ease); }
+.continue-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-light); font-weight: 600; }
+
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text-light); font-size: 13.5px; border: 1.5px dashed var(--border); border-radius: var(--radius); }
+
+/* Subject grid */
+.subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+.subject-card {
+  position: relative; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 26px 22px; cursor: pointer; overflow: hidden; transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease), border-color 0.28s var(--ease);
+  box-shadow: var(--shadow-sm); animation: fadeUp 0.5s var(--ease) both;
+}
+.subject-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--border-dark); }
+.subject-card::before { content:''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+.subject-icon-wrap { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+.subject-icon-wrap svg { width: 22px; height: 22px; }
+.subject-card-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.subject-card-count { font-size: 12px; color: var(--text-light); font-weight: 600; }
+.subject-card-arrow { position: absolute; right: 20px; bottom: 22px; width: 30px; height: 30px; border-radius: 50%; background: var(--gray-bg); display: flex; align-items: center; justify-content: center; color: var(--text-mid); transition: all 0.25s var(--ease); }
+.subject-card:hover .subject-card-arrow { background: var(--navy); color: #fff; transform: translateX(3px); }
+.subject-card-arrow svg { width: 15px; height: 15px; }
+
+/* Materials grid (subject view) */
+.materials-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+.back-link { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: pointer; transition: color 0.2s; }
+.back-link:hover { color: var(--navy); }
+.back-link svg { width: 16px; height: 16px; }
+.category-block { margin-top: 30px; }
+.category-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-light); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.category-label::after { content:''; flex:1; height:1px; background: var(--border); }
+.material-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.material-card {
+  position: relative; background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--sub-default);
+  border-radius: var(--radius-sm); padding: 18px 18px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 10px;
+  transition: transform 0.24s var(--ease), box-shadow 0.24s var(--ease); box-shadow: var(--shadow-sm); animation: fadeUp 0.45s var(--ease) both;
+}
+.material-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.material-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.material-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--blue-light); color: var(--blue-vivid); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.material-icon svg { width: 17px; height: 17px; }
+.material-badge { font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-light); background: var(--gray-bg); padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.material-title { font-family: var(--font-display); font-weight: 700; font-size: 1.08rem; color: var(--navy); line-height: 1.3; }
+.material-meta { font-size: 11.5px; color: var(--text-light); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════
+   READER
+═══════════════════════════════════════════════ */
+#page-reader { background: #f4f6fb; }
+#page-reader.dark-mode { background: #10131a; }
+.reader-header {
+  background: var(--white); border-bottom: 1px solid var(--border); padding: 0 24px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0;
+  position: sticky; top: 0; z-index: 50; transition: background 0.3s, border-color 0.3s;
+}
+#page-reader.dark-mode .reader-header { background: #171b26; border-color: #262c3a; }
+.reader-header-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.reader-back { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-mid); transition: all 0.2s var(--ease); flex-shrink: 0; }
+.reader-back:hover { background: var(--gray-bg); border-color: var(--border-dark); }
+#page-reader.dark-mode .reader-back { background: #20242f; border-color: #2e3444; color: rgba(255,255,255,0.6); }
+.reader-titleblock { min-width: 0; }
+.reader-book-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+#page-reader.dark-mode .reader-book-title { color: #fff; }
+.reader-book-sub { font-size: 10.5px; color: var(--text-light); font-weight: 600; letter-spacing: 0.04em; }
+@media (max-width: 720px) { .reader-book-title { max-width: 150px; } }
+
+.reader-header-right { display: flex; align-items: center; gap: 8px; }
+.reader-icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-mid); transition: all 0.2s var(--ease); position: relative; }
+.reader-icon-btn:hover { background: var(--gray-bg); border-color: var(--border-dark); color: var(--navy); }
+.reader-icon-btn.active-toggle { background: var(--navy); border-color: var(--navy); color: #fff; }
+.reader-icon-btn svg { width: 17px; height: 17px; }
+#page-reader.dark-mode .reader-icon-btn { background: #20242f; border-color: #2e3444; color: rgba(255,255,255,0.6); }
+#page-reader.dark-mode .reader-icon-btn:hover { background: #262c3a; color: #fff; }
+
+.reader-search-pop { position: absolute; top: 52px; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); padding: 12px; display: none; gap: 8px; align-items: center; z-index: 60; width: 260px; }
+.reader-search-pop.active { display: flex; }
+.reader-search-pop input { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 13px; outline: none; }
+.reader-search-pop input:focus { border-color: var(--blue); }
+.reader-search-count { font-size: 11px; color: var(--text-light); white-space: nowrap; font-weight: 600; }
+#page-reader.dark-mode .reader-search-pop { background: #20242f; border-color: #2e3444; }
+#page-reader.dark-mode .reader-search-pop input { background: #171b26; border-color: #2e3444; color: #fff; }
+
+.reader-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.reader-toolbar {
+  background: var(--white); border-bottom: 1px solid var(--border); padding: 9px 20px;
+  display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; flex-shrink: 0;
+  transition: background 0.3s, border-color 0.3s;
+}
+#page-reader.dark-mode .reader-toolbar { background: #171b26; border-color: #262c3a; }
+.reader-nav-group { display: flex; align-items: center; gap: 8px; }
+.reader-nav-btn { background: var(--gray-bg); border: 1px solid var(--border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--navy); font-weight: 700; transition: all 0.2s var(--ease); }
+.reader-nav-btn:hover:not(:disabled) { background: var(--blue-light); border-color: var(--blue-mid); }
+.reader-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+#page-reader.dark-mode .reader-nav-btn { background: #20242f; border-color: #2e3444; color: #fff; }
+.reader-page-info { font-size: 12.5px; font-weight: 600; color: var(--text-mid); min-width: 90px; text-align: center; }
+#page-reader.dark-mode .reader-page-info { color: rgba(255,255,255,0.6); }
+.reader-zoom-level { font-size: 11.5px; font-weight: 700; color: var(--text-light); min-width: 42px; text-align: center; font-family: var(--font-mono); }
+
+.reader-scroll-area { flex: 1; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; padding: 30px 16px 60px; gap: 26px; -webkit-overflow-scrolling: touch; }
+.reader-page-wrap { position: relative; flex-shrink: 0; box-shadow: 0 12px 32px rgba(15,36,73,0.16); background: #fff; border-radius: 6px; overflow: hidden; }
+#page-reader.dark-mode .reader-page-wrap { box-shadow: 0 12px 32px rgba(0,0,0,0.5); filter: invert(0.92) hue-rotate(180deg); }
+.reader-page-wrap canvas { display: block; }
+.reader-watermark-layer { position: absolute; inset: 0; pointer-events: none; opacity: 0.14; background-repeat: repeat; z-index: 5; }
+#page-reader.dark-mode .reader-watermark-layer { opacity: 0.22; }
+
+.reader-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 100px 24px; color: var(--text-light); font-size: 13.5px; font-weight: 500; flex: 1; }
+.reader-spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--blue-vivid); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.reader-error { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 80px 24px; color: var(--red); font-size: 14px; text-align: center; flex: 1; }
+.reader-error.visible { display: flex; }
+
+.reader-footer { background: var(--white); border-top: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-shrink: 0; font-size: 11px; color: var(--text-light); font-weight: 600; letter-spacing: 0.02em; }
+#page-reader.dark-mode .reader-footer { background: #171b26; border-color: #262c3a; color: rgba(255,255,255,0.3); }
+
+/* Toast */
+#toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy-dark); color: #fff; padding: 13px 24px; border-radius: 100px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: all 0.3s var(--ease); z-index: 9999; display: flex; align-items: center; gap: 10px; }
+#toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast svg { width: 15px; height: 15px; color: var(--gold-pale); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!--
+════════════════════════════════════════════════════════════════
+  WAVES DIGITAL LIBRARY — CONFIGURATION
+  This is the ONLY section you should need to edit.
+════════════════════════════════════════════════════════════════
+-->
+<script id="config-script">
+
+/* ################################################
+   EDIT STUDENT ACCESS
+   Each key is the exact name the student types at login.
+   "passkey" is their 6-digit code (shared style with the Exam Portal).
+   "materials" is the list of material IDs (from LIBRARY below)
+   this student is allowed to see. Remove an ID and it vanishes
+   from their library automatically — no other code changes needed.
+   Later this object will be replaced by a live Firebase lookup.
+################################################ */
+const STUDENTS = {
+  "KRTIN": {
+    passkey: "102938",
+    class: "12",
+    subjects: ["Physics", "Chemistry", "Maths"],
+    materials: ["phy1","phy2","phy3","phy4","chem1","chem2","chem3","math1","math2","math3","math4"]
+  },
+  "ADIT": {
+    passkey: "293847",
+    class: "12",
+    subjects: ["Physics", "Chemistry", "Maths"],
+    materials: ["phy1","phy2","chem1","chem2","math1","math2","math3"]
+  }
+};
+
+/* ################################################
+   EDIT LIBRARY
+   Every material available in the system. A student only sees
+   an entry here if its "id" also appears in their STUDENTS.materials
+   list above. Change "pdf" to the real path of your file — the
+   reader loads it directly with PDF.js.
+################################################ */
+const LIBRARY = [
+  { id:"phy1", class:"12", subject:"Physics",   category:"Notes",           title:"Electrostatics — Field & Potential",     pdf:"books/12/physics/electrostatics.pdf" },
+  { id:"phy2", class:"12", subject:"Physics",   category:"Notes",           title:"Current Electricity",                    pdf:"books/12/physics/current-electricity.pdf" },
+  { id:"phy3", class:"12", subject:"Physics",   category:"Formula Sheet",   title:"Optics — Quick Reference",               pdf:"books/12/physics/optics-formulas.pdf" },
+  { id:"phy4", class:"12", subject:"Physics",   category:"Practice Paper",  title:"Modern Physics — Problem Set 3",         pdf:"books/12/physics/modern-physics-ps3.pdf" },
+
+  { id:"chem1", class:"12", subject:"Chemistry", category:"Notes",          title:"Solid State & Solutions",                pdf:"books/12/chemistry/solid-state.pdf" },
+  { id:"chem2", class:"12", subject:"Chemistry", category:"Notes",          title:"Electrochemistry",                       pdf:"books/12/chemistry/electrochemistry.pdf" },
+  { id:"chem3", class:"12", subject:"Chemistry", category:"Practice Paper", title:"Organic Chemistry — Named Reactions",    pdf:"books/12/chemistry/named-reactions.pdf" },
+
+  { id:"math1", class:"12", subject:"Maths",     category:"Notes",          title:"Matrices & Determinants",                pdf:"books/12/maths/matrices.pdf" },
+  { id:"math2", class:"12", subject:"Maths",     category:"Notes",          title:"Continuity & Differentiability",         pdf:"books/12/maths/continuity.pdf" },
+  { id:"math3", class:"12", subject:"Maths",     category:"Formula Sheet",  title:"Integrals — Quick Reference",            pdf:"books/12/maths/integrals-formulas.pdf" },
+  { id:"math4", class:"12", subject:"Maths",     category:"Practice Paper", title:"Vectors & 3D Geometry — Problem Set 2",  pdf:"books/12/maths/vectors-3d-ps2.pdf" }
+];
+
+/* Watermark shown on every page of every document. */
+const WATERMARK = {
+  line1: "WAVES COACHING CENTER",
+  line2: "library.wavescoachingcenter.in"
+};
+
+</script>
+
+<!--
+════════════════════════════════════════════════════════════════
+  MARKUP
+════════════════════════════════════════════════════════════════
+-->
+
+<div id="page-login" class="page active no-select">
+  <div class="login-split">
+    <div class="login-panel-left">
+      <div class="login-brand-row">
+        <img src="favicon.png" class="login-brand-logo" onerror="this.style.display='none'" alt=""/>
+        <div>
+          <div class="login-brand-name">Waves Coaching Center</div>
+          <div class="login-brand-sub">Digital Library</div>
+        </div>
+      </div>
+      <div class="login-left-content">
+        <div class="login-left-badge">Student Library</div>
+        <div class="login-left-headline">Every Note.<br/><em>Always With You.</em></div>
+        <div class="login-left-tagline">Your notes, formula sheets and practice papers — organized by subject, ready whenever you are.</div>
+        <div class="login-left-stats">
+          <div><div class="login-stat-num" id="stat-total-materials">—</div><div class="login-stat-label">Resources</div></div>
+          <div><div class="login-stat-num">3</div><div class="login-stat-label">Subjects</div></div>
+          <div><div class="login-stat-num">24/7</div><div class="login-stat-label">Access</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="login-panel-right">
+      <div class="login-form-inner">
+        <div class="login-mobile-brand">
+          <img src="favicon.png" class="login-mobile-logo" onerror="this.style.display='none'" alt=""/>
+          <div class="login-mobile-brandname">Waves Library</div>
+          <div class="login-mobile-tagline">Riding the Waves of Knowledge</div>
+        </div>
+
+        <div id="login-form-view">
+          <div class="login-eyebrow">Student Access</div>
+          <div class="login-form-title">Open Your Library</div>
+          <div class="login-form-subtitle">Enter your name and passkey to continue.</div>
+          <div class="login-fields">
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="login-name" placeholder="Enter your full name" autocomplete="off"/>
+            </div>
+            <div class="field">
+              <label>Passkey</label>
+              <input type="password" id="login-passkey" placeholder="6-digit passkey" autocomplete="off" maxlength="6" inputmode="numeric" style="letter-spacing:0.3em;font-family:var(--font-mono);"/>
+            </div>
+            <div id="login-error" class="error-msg">Name and passkey do not match our records.</div>
+          </div>
+          <button class="login-cta" onclick="handleLogin()">
+            Enter Library
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <div id="login-verifying" class="login-verifying">
+          <div class="spin-ring"></div>
+          <div class="login-form-title" style="font-size:1.4rem;">Opening your library…</div>
+          <div class="login-verifying-text" id="login-verifying-text">Verifying passkey…</div>
+        </div>
+
+        <div class="login-footer-note">Access is currently limited to enrolled students of Waves Coaching Center.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-dashboard" class="page">
+  <div class="navbar">
+    <div class="nav-left">
+      <img src="favicon.png" class="nav-logo" onerror="this.style.display='none'" alt=""/>
+      <div class="nav-brandblock">
+        <div class="nav-brand-title">WAVES Digital Library</div>
+        <div class="nav-brand-sub">Waves Coaching Center</div>
+      </div>
+    </div>
+    <div class="nav-search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="global-search" placeholder="Search notes, subjects, papers…" oninput="handleGlobalSearch(this.value)"/>
+    </div>
+    <div class="nav-right">
+      <div class="nav-student">
+        <div class="nav-student-avatar" id="nav-avatar">—</div>
+        <div class="nav-student-info">
+          <div class="nav-student-name" id="nav-student-name">—</div>
+          <div class="nav-student-class" id="nav-student-class">—</div>
+        </div>
+      </div>
+      <button class="nav-logout" onclick="handleLogout()" title="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="subject-strip" id="subject-strip"></div>
+
+  <div class="lib-main">
+    <div id="dash-view">
+      <div class="hero">
+        <div class="hero-eyebrow">Welcome back</div>
+        <div class="hero-title">Good to see you, <em id="hero-name">Student</em>.</div>
+        <div class="hero-sub">Your personal shelf of notes, formula sheets and practice papers — curated for Class <span id="hero-class">—</span>.</div>
+        <div class="hero-stats">
+          <div><div class="hero-stat-num" id="hero-stat-materials">0</div><div class="hero-stat-label">Materials Unlocked</div></div>
+          <div><div class="hero-stat-num" id="hero-stat-subjects">0</div><div class="hero-stat-label">Subjects</div></div>
+          <div><div class="hero-stat-num" id="hero-stat-continue">0</div><div class="hero-stat-label">In Progress</div></div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-title">Continue Reading</div>
+        <div class="section-sub" id="continue-sub"></div>
+      </div>
+      <div id="continue-wrap"></div>
+
+      <div class="section-head">
+        <div class="section-title">Your Subjects</div>
+        <div class="section-sub">Tap a subject to browse its materials</div>
+      </div>
+      <div class="subject-grid" id="subject-grid"></div>
+    </div>
+
+    <div id="subject-view" style="display:none;">
+      <div class="materials-toolbar">
+        <div class="back-link" onclick="showDashView()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to Library
+        </div>
+      </div>
+      <div class="section-head" style="margin-top:18px;">
+        <div class="section-title" id="subject-view-title">Subject</div>
+        <div class="section-sub" id="subject-view-count"></div>
+      </div>
+      <div id="subject-view-body"></div>
+    </div>
+
+    <div id="search-view" style="display:none;">
+      <div class="materials-toolbar">
+        <div class="back-link" onclick="showDashView()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to Library
+        </div>
+      </div>
+      <div class="section-head" style="margin-top:18px;">
+        <div class="section-title">Search Results</div>
+        <div class="section-sub" id="search-result-count"></div>
+      </div>
+      <div class="material-grid" id="search-results-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div id="page-reader" class="page no-select">
+  <div class="reader-header">
+    <div class="reader-header-left">
+      <button class="reader-back" onclick="closeReader()" title="Back to library">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="reader-titleblock">
+        <div class="reader-book-title" id="reader-title">—</div>
+        <div class="reader-book-sub" id="reader-subtitle">—</div>
+      </div>
+    </div>
+    <div class="reader-header-right">
+      <div style="position:relative;">
+        <button class="reader-icon-btn" id="reader-search-btn" onclick="toggleReaderSearch()" title="Search in document">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <div class="reader-search-pop" id="reader-search-pop">
+          <input type="text" id="reader-search-input" placeholder="Find in document…" onkeydown="if(event.key==='Enter')readerSearchNext()"/>
+          <span class="reader-search-count" id="reader-search-count"></span>
+        </div>
+      </div>
+      <button class="reader-icon-btn" id="reader-dark-btn" onclick="toggleReaderDark()" title="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="reader-icon-btn" onclick="toggleReaderFullscreen()" title="Fullscreen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18-5h-3a2 2 0 0 1 2-2M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="reader-body">
+    <div class="reader-toolbar">
+      <div class="reader-nav-group">
+        <button class="reader-nav-btn" id="reader-prev" onclick="readerPrevPage()">&#8249;</button>
+        <span class="reader-page-info" id="reader-page-info">Page — of —</span>
+        <button class="reader-nav-btn" id="reader-next" onclick="readerNextPage()">&#8250;</button>
+      </div>
+      <div class="reader-nav-group">
+        <button class="reader-nav-btn" onclick="readerZoomOut()">&#8722;</button>
+        <span class="reader-zoom-level" id="reader-zoom-level">100%</span>
+        <button class="reader-nav-btn" onclick="readerZoomIn()">&#43;</button>
+      </div>
+    </div>
+    <div class="reader-scroll-area" id="reader-scroll-area">
+      <div class="reader-loading" id="reader-loading"><div class="reader-spinner"></div><span>Loading document…</span></div>
+      <div class="reader-error" id="reader-error">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <strong>Couldn't load this document.</strong>
+        <span style="font-size:12.5px;color:var(--text-light);">Check that the PDF path in the library config is correct.</span>
+      </div>
+    </div>
+  </div>
+  <div class="reader-footer">WAVES Coaching Center · Protected document · Copy, print & download disabled</div>
+</div>
+
+<div id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+  <span id="toast-text">Saved</span>
+</div>
+
+<script id="engine-script">
+/* ════════════════════════════════════════════════════
+   SECURITY — right-click / copy / print / select / drag
+════════════════════════════════════════════════════ */
+document.addEventListener('contextmenu', e => e.preventDefault(), true);
+document.addEventListener('dragstart', e => e.preventDefault(), true);
+document.addEventListener('drop', e => e.preventDefault(), true);
+document.addEventListener('selectstart', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  e.preventDefault();
+}, true);
+document.addEventListener('keydown', e => {
+  const key = e.key.toUpperCase();
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (e.key === 'F12') { e.preventDefault(); return; }
+  if (ctrl && e.shiftKey && (key==='I'||key==='J'||key==='C')) { e.preventDefault(); return; }
+  if (ctrl && (key==='U'||key==='S'||key==='P')) { e.preventDefault(); showToast('That action is disabled in the library.'); return; }
+  if (ctrl && (key==='A'||key==='C')) {
+    const t = document.activeElement;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    e.preventDefault();
+  }
+}, true);
+['copy','cut'].forEach(evt => document.addEventListener(evt, e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  e.preventDefault();
+}, true));
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  el.classList.add('visible');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => el.classList.remove('visible'), 2600);
+}
+
+/* ════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════ */
+const SUBJECT_COLORS = {
+  "Physics": "var(--sub-physics)", "Chemistry": "var(--sub-chemistry)",
+  "Maths": "var(--sub-maths)", "Mathematics": "var(--sub-maths)",
+  "Biology": "var(--sub-biology)", "English": "var(--sub-english)"
+};
+function subjectColor(s) { return SUBJECT_COLORS[s] || "var(--sub-default)"; }
+
+const SUBJECT_ICONS = {
+  "Physics":   '<circle cx="12" cy="12" r="1.6"/><ellipse cx="12" cy="12" rx="10" ry="4.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/>',
+  "Chemistry": '<path d="M9 3h6M10 3v6.2L4.6 18a2 2 0 0 0 1.7 3h11.4a2 2 0 0 0 1.7-3L14 9.2V3"/><line x1="8.5" y1="14" x2="15.5" y2="14"/>',
+  "Maths":     '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
+  "default":   '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>'
+};
+function subjectIcon(s) { return SUBJECT_ICONS[s] || SUBJECT_ICONS['default']; }
+
+let CURRENT_STUDENT = null;   // { name, class, subjects, materials }
+let ACTIVE_SUBJECT_FILTER = null;
+
+function myMaterials() {
+  if (!CURRENT_STUDENT) return [];
+  return LIBRARY.filter(m => CURRENT_STUDENT.materials.includes(m.id));
+}
+function materialsFor(subject) { return myMaterials().filter(m => m.subject === subject); }
+function findMaterial(id) { return LIBRARY.find(m => m.id === id); }
+
+/* ════════════════════════════════════════════════════
+   LOGIN
+════════════════════════════════════════════════════ */
+document.getElementById('stat-total-materials').textContent = LIBRARY.length;
+document.getElementById('login-passkey').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+document.getElementById('login-name').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+function handleLogin() {
+  const nameInput = document.getElementById('login-name').value.trim();
+  const passInput = document.getElementById('login-passkey').value.trim();
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('visible');
+
+  const key = nameInput.toUpperCase();
+  const record = STUDENTS[key];
+
+  if (!nameInput || !passInput || !record || record.passkey !== passInput) {
+    errEl.classList.add('visible');
+    return;
+  }
+
+  document.getElementById('login-form-view').style.display = 'none';
+  document.getElementById('login-verifying').classList.add('active');
+  const statusEl = document.getElementById('login-verifying-text');
+  const steps = ['Verifying passkey…', 'Loading your subjects…', 'Preparing your shelf…'];
+  let i = 0;
+  statusEl.textContent = steps[0];
+  const stepTimer = setInterval(() => { i++; if (i < steps.length) statusEl.textContent = steps[i]; }, 550);
+
+  setTimeout(() => {
+    clearInterval(stepTimer);
+    CURRENT_STUDENT = { name: key, class: record.class, subjects: record.subjects, materials: record.materials };
+    enterLibrary();
+  }, 1700);
+}
+
+function handleLogout() {
+  CURRENT_STUDENT = null;
+  document.getElementById('login-form-view').style.display = 'block';
+  document.getElementById('login-verifying').classList.remove('active');
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-passkey').value = '';
+  document.getElementById('login-error').classList.remove('visible');
+  showPage('page-login');
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ════════════════════════════════════════════════════
+   ENTER LIBRARY — build dashboard
+════════════════════════════════════════════════════ */
+function enterLibrary() {
+  document.getElementById('nav-avatar').textContent = CURRENT_STUDENT.name.charAt(0);
+  document.getElementById('nav-student-name').textContent = titleCase(CURRENT_STUDENT.name);
+  document.getElementById('nav-student-class').textContent = 'Class ' + CURRENT_STUDENT.class;
+  document.getElementById('hero-name').textContent = titleCase(CURRENT_STUDENT.name);
+  document.getElementById('hero-class').textContent = CURRENT_STUDENT.class;
+
+  buildSubjectStrip();
+  buildSubjectGrid();
+  buildContinueReading();
+  updateHeroStats();
+  showPage('page-dashboard');
+  showDashView();
+}
+
+function titleCase(s) { return s.charAt(0) + s.slice(1).toLowerCase(); }
+
+function updateHeroStats() {
+  document.getElementById('hero-stat-materials').textContent = myMaterials().length;
+  document.getElementById('hero-stat-subjects').textContent = CURRENT_STUDENT.subjects.length;
+  document.getElementById('hero-stat-continue').textContent = getProgressEntries().length;
+}
+
+function buildSubjectStrip() {
+  const strip = document.getElementById('subject-strip');
+  let html = `<div class="subject-pill active" data-subj="__all__" onclick="filterBySubject(null, this)">All</div>`;
+  CURRENT_STUDENT.subjects.forEach(s => {
+    html += `<div class="subject-pill" data-subj="${s}" onclick="filterBySubject('${s}', this)">
+      <span class="subject-pill-dot" style="background:${subjectColor(s)};"></span>${s}
+    </div>`;
+  });
+  strip.innerHTML = html;
+}
+function filterBySubject(subject, el) {
+  document.querySelectorAll('.subject-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if (subject) openSubject(subject);
+  else showDashView();
+}
+
+function buildSubjectGrid() {
+  const grid = document.getElementById('subject-grid');
+  grid.innerHTML = CURRENT_STUDENT.subjects.map((s, idx) => {
+    const count = materialsFor(s).length;
+    const color = subjectColor(s);
+    return `<div class="subject-card" style="animation-delay:${idx * 0.06}s;" onclick="openSubjectFromCard('${s}')">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:${color};"></div>
+      <div class="subject-icon-wrap" style="background:${color}1a;color:${color};">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${subjectIcon(s)}</svg>
+      </div>
+      <div class="subject-card-title">${s}</div>
+      <div class="subject-card-count">${count} ${count===1?'resource':'resources'}</div>
+      <div class="subject-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </div>`;
+  }).join('');
+}
+function openSubjectFromCard(s) {
+  document.querySelectorAll('.subject-pill').forEach(p => p.classList.toggle('active', p.dataset.subj === s));
+  openSubject(s);
+}
+
+/* ════════════════════════════════════════════════════
+   VIEW SWITCHING
+════════════════════════════════════════════════════ */
+function showDashView() {
+  document.getElementById('dash-view').style.display = 'block';
+  document.getElementById('subject-view').style.display = 'none';
+  document.getElementById('search-view').style.display = 'none';
+  document.getElementById('global-search').value = '';
+  document.querySelectorAll('.subject-pill').forEach(p => p.classList.toggle('active', p.dataset.subj === '__all__'));
+  buildContinueReading();
+  updateHeroStats();
+}
+
+function openSubject(subject) {
+  const mats = materialsFor(subject);
+  document.getElementById('dash-view').style.display = 'none';
+  document.getElementById('search-view').style.display = 'none';
+  document.getElementById('subject-view').style.display = 'block';
+  document.getElementById('subject-view-title').textContent = subject;
+  document.getElementById('subject-view-count').textContent = mats.length + ' ' + (mats.length===1?'resource':'resources');
+
+  const byCategory = {};
+  mats.forEach(m => { (byCategory[m.category] = byCategory[m.category] || []).push(m); });
+
+  const body = document.getElementById('subject-view-body');
+  if (mats.length === 0) {
+    body.innerHTML = `<div class="empty-state">No materials have been added to ${subject} yet. Check back soon.</div>`;
+    return;
+  }
+  body.innerHTML = Object.keys(byCategory).map(cat => `
+    <div class="category-block">
+      <div class="category-label">${cat}</div>
+      <div class="material-grid">${byCategory[cat].map(m => materialCardHtml(m)).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function materialCardHtml(m) {
+  const color = subjectColor(m.subject);
+  const prog = getProgress(m.id);
+  return `<div class="material-card" style="border-left-color:${color};" onclick="openReader('${m.id}')">
+    <div class="material-top">
+      <div class="material-icon" style="background:${color}1a;color:${color};">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <span class="material-badge">${m.category}</span>
+    </div>
+    <div class="material-title">${m.title}</div>
+    <div class="material-meta">${m.subject}${prog ? ' · ' + Math.round(prog.pct) + '% read' : ''}</div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   SEARCH
+════════════════════════════════════════════════════ */
+function handleGlobalSearch(q) {
+  q = q.trim().toLowerCase();
+  if (!q) { showDashView(); return; }
+  document.getElementById('dash-view').style.display = 'none';
+  document.getElementById('subject-view').style.display = 'none';
+  document.getElementById('search-view').style.display = 'block';
+
+  const results = myMaterials().filter(m =>
+    m.title.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)
+  );
+  document.getElementById('search-result-count').textContent = results.length + ' result' + (results.length===1?'':'s') + ' for "' + q + '"';
+  const grid = document.getElementById('search-results-grid');
+  grid.innerHTML = results.length
+    ? results.map(m => materialCardHtml(m)).join('')
+    : `<div class="empty-state" style="grid-column:1/-1;">No materials match your search.</div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   READING PROGRESS (localStorage — will move to Firebase)
+════════════════════════════════════════════════════ */
+function progressKey() { return 'waves_lib_progress_' + CURRENT_STUDENT.name; }
+function getAllProgress() {
+  try { return JSON.parse(localStorage.getItem(progressKey())) || {}; } catch(e) { return {}; }
+}
+function getProgress(id) { return getAllProgress()[id] || null; }
+function saveProgress(id, page, totalPages) {
+  const all = getAllProgress();
+  all[id] = { page, totalPages, pct: Math.min(100, (page/totalPages)*100), ts: Date.now() };
+  try { localStorage.setItem(progressKey(), JSON.stringify(all)); } catch(e) {}
+}
+function getProgressEntries() {
+  const all = getAllProgress();
+  return Object.keys(all)
+    .filter(id => CURRENT_STUDENT.materials.includes(id) && findMaterial(id))
+    .map(id => ({ id, ...all[id] }))
+    .sort((a,b) => b.ts - a.ts);
+}
+
+function buildContinueReading() {
+  const entries = getProgressEntries().slice(0, 6);
+  const wrap = document.getElementById('continue-wrap');
+  document.getElementById('continue-sub').textContent = entries.length ? 'Pick up right where you left off' : '';
+  if (!entries.length) {
+    wrap.innerHTML = `<div class="empty-state">Nothing in progress yet — open a resource below to start reading.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="continue-scroll">${entries.map(e => {
+    const m = findMaterial(e.id);
+    const color = subjectColor(m.subject);
+    return `<div class="continue-card" onclick="openReader('${m.id}')">
+      <div class="continue-ribbon" style="background:${color};"></div>
+      <div class="continue-cat">${m.subject}</div>
+      <div class="continue-title">${m.title}</div>
+      <div class="continue-progress-track"><div class="continue-progress-fill" style="width:${e.pct}%;background:${color};"></div></div>
+      <div class="continue-meta"><span>Page ${e.page} of ${e.totalPages}</span><span>${Math.round(e.pct)}%</span></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   PDF READER
+════════════════════════════════════════════════════ */
+const PDFJS_CDN    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const readerState = { doc: null, materialId: null, currentPage: 1, totalPages: 0, scale: 1.25, dark: false, pageTexts: {}, searchMatches: [], searchIdx: -1 };
+
+function openReader(materialId) {
+  const m = findMaterial(materialId);
+  if (!m) return;
+  readerState.materialId = materialId;
+  readerState.currentPage = 1; readerState.scale = 1.25;
+  readerState.doc = null; readerState.pageTexts = {}; readerState.searchMatches = []; readerState.searchIdx = -1;
+
+  const saved = getProgress(materialId);
+  document.getElementById('reader-title').textContent = m.title;
+  document.getElementById('reader-subtitle').textContent = m.subject + ' · ' + m.category;
+  document.getElementById('reader-loading').style.display = 'flex';
+  document.getElementById('reader-error').classList.remove('visible');
+  document.getElementById('reader-scroll-area').innerHTML = '';
+  document.getElementById('reader-scroll-area').appendChild(document.getElementById('reader-loading'));
+  document.getElementById('reader-scroll-area').appendChild(document.getElementById('reader-error'));
+
+  document.body.classList.add('reader-open');
+  showPage('page-reader');
+
+  if (typeof window.pdfjsLib !== 'undefined') { fetchAndRenderPdf(m.pdf, saved); return; }
+  const script = document.createElement('script');
+  script.src = PDFJS_CDN;
+  script.onload  = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; fetchAndRenderPdf(m.pdf, saved); };
+  script.onerror = showReaderError;
+  document.head.appendChild(script);
+}
+
+async function fetchAndRenderPdf(pdfPath, saved) {
+  try {
+    const doc = await window.pdfjsLib.getDocument(pdfPath).promise;
+    readerState.doc = doc; readerState.totalPages = doc.numPages;
+    readerState.currentPage = saved && saved.page <= doc.numPages ? saved.page : 1;
+    document.getElementById('reader-loading').style.display = 'none';
+
+    const scrollArea = document.getElementById('reader-scroll-area');
+    for (let i = 1; i <= doc.numPages; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'reader-page-wrap'; wrap.id = 'reader-page-wrap-' + i;
+      const canvas = document.createElement('canvas'); canvas.id = 'reader-canvas-' + i;
+      const wm = document.createElement('div'); wm.className = 'reader-watermark-layer';
+      wrap.appendChild(canvas); wrap.appendChild(wm);
+      scrollArea.appendChild(wrap);
+      await renderReaderPage(i, canvas, wm);
+    }
+    updateReaderUI();
+    setupReaderScrollDetect();
+    setTimeout(() => scrollToReaderPage(readerState.currentPage, false), 60);
+    setupReaderTouchZoom();
+  } catch(err) { showReaderError(); }
+}
+
+function watermarkSvgUri() {
+  const enc = s => encodeURIComponent(s);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'>
+    <text x='30' y='60' transform='rotate(-28 30 60)' font-family='DM Sans, sans-serif' font-size='17' font-weight='700' fill='#0f2449'>${WATERMARK.line1}</text>
+    <text x='30' y='84' transform='rotate(-28 30 84)' font-family='DM Sans, sans-serif' font-size='11' fill='#0f2449'>${WATERMARK.line2}</text>
+  </svg>`;
+  return "url(\"data:image/svg+xml," + enc(svg) + "\")";
+}
+
+async function renderReaderPage(pageNum, canvas, wmEl) {
+  const page = await readerState.doc.getPage(pageNum);
+  const pixelRatio = window.devicePixelRatio || 1;
+  const viewport = page.getViewport({ scale: readerState.scale * pixelRatio });
+  canvas.width = viewport.width; canvas.height = viewport.height;
+  canvas.style.width = Math.floor(viewport.width / pixelRatio) + 'px';
+  canvas.style.height = Math.floor(viewport.height / pixelRatio) + 'px';
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  wmEl.style.backgroundImage = watermarkSvgUri();
+  try {
+    const textContent = await page.getTextContent();
+    readerState.pageTexts[pageNum] = textContent.items.map(it => it.str).join(' ').toLowerCase();
+  } catch(e) {}
+}
+
+async function rerenderAllReaderPages() {
+  if (!readerState.doc) return;
+  for (let i = 1; i <= readerState.totalPages; i++) {
+    const canvas = document.getElementById('reader-canvas-' + i);
+    const wrap = document.getElementById('reader-page-wrap-' + i);
+    if (canvas && wrap) await renderReaderPage(i, canvas, wrap.querySelector('.reader-watermark-layer'));
+  }
+  updateReaderUI();
+}
+
+function readerPrevPage() { if (readerState.currentPage <= 1) return; readerState.currentPage--; scrollToReaderPage(readerState.currentPage); }
+function readerNextPage() { if (readerState.currentPage >= readerState.totalPages) return; readerState.currentPage++; scrollToReaderPage(readerState.currentPage); }
+function scrollToReaderPage(n, smooth) {
+  const w = document.getElementById('reader-page-wrap-' + n);
+  if (w) w.scrollIntoView({ behavior: smooth === false ? 'auto' : 'smooth', block: 'start' });
+  updateReaderUI();
+  persistCurrentProgress();
+}
+function readerZoomIn()  { if (readerState.scale >= 3.0) return; readerState.scale = Math.min(3.0, readerState.scale + 0.25); rerenderAllReaderPages(); }
+function readerZoomOut() { if (readerState.scale <= 0.5) return; readerState.scale = Math.max(0.5, readerState.scale - 0.25); rerenderAllReaderPages(); }
+
+function updateReaderUI() {
+  document.getElementById('reader-page-info').textContent = 'Page ' + readerState.currentPage + ' of ' + readerState.totalPages;
+  document.getElementById('reader-prev').disabled = readerState.currentPage <= 1;
+  document.getElementById('reader-next').disabled = readerState.currentPage >= readerState.totalPages;
+  document.getElementById('reader-zoom-level').textContent = Math.round(readerState.scale * 100) + '%';
+}
+function persistCurrentProgress() {
+  if (!readerState.materialId || !readerState.totalPages) return;
+  saveProgress(readerState.materialId, readerState.currentPage, readerState.totalPages);
+}
+function setupReaderScrollDetect() {
+  const scrollArea = document.getElementById('reader-scroll-area');
+  scrollArea.addEventListener('scroll', () => {
+    for (let i = 1; i <= readerState.totalPages; i++) {
+      const wrap = document.getElementById('reader-page-wrap-' + i); if (!wrap) continue;
+      const rect = wrap.getBoundingClientRect();
+      const areaRect = scrollArea.getBoundingClientRect();
+      if (rect.top >= areaRect.top - 80) {
+        if (readerState.currentPage !== i) { readerState.currentPage = i; updateReaderUI(); persistCurrentProgress(); }
+        break;
+      }
+    }
+  }, { passive: true });
+}
+function setupReaderTouchZoom() {
+  const el = document.getElementById('reader-scroll-area');
+  let lastDist = null;
+  el.addEventListener('touchstart', e => { if (e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    if (e.touches.length === 2 && lastDist !== null) {
+      const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      const delta = dist - lastDist;
+      if (Math.abs(delta) > 14) { delta > 0 ? readerZoomIn() : readerZoomOut(); lastDist = dist; }
+    }
+  }, { passive: true });
+  el.addEventListener('touchend', () => { lastDist = null; }, { passive: true });
+}
+function showReaderError() {
+  document.getElementById('reader-loading').style.display = 'none';
+  document.getElementById('reader-error').classList.add('visible');
+}
+
+function closeReader() {
+  persistCurrentProgress();
+  document.body.classList.remove('reader-open');
+  document.getElementById('page-reader').classList.remove('dark-mode');
+  readerState.dark = false;
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch(e) {}
+  showPage('page-dashboard');
+  buildContinueReading();
+  updateHeroStats();
+  if (document.getElementById('subject-view').style.display === 'block') {
+    const s = document.getElementById('subject-view-title').textContent;
+    openSubject(s);
+  }
+}
+
+function toggleReaderDark() {
+  readerState.dark = !readerState.dark;
+  document.getElementById('page-reader').classList.toggle('dark-mode', readerState.dark);
+  document.getElementById('reader-dark-btn').classList.toggle('active-toggle', readerState.dark);
+}
+function toggleReaderFullscreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement) {
+    (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+  }
+}
+
+/* Simple in-document search across extracted page text */
+function toggleReaderSearch() {
+  const pop = document.getElementById('reader-search-pop');
+  pop.classList.toggle('active');
+  if (pop.classList.contains('active')) document.getElementById('reader-search-input').focus();
+}
+function readerSearchNext() {
+  const q = document.getElementById('reader-search-input').value.trim().toLowerCase();
+  const countEl = document.getElementById('reader-search-count');
+  if (!q) { countEl.textContent = ''; return; }
+  const matches = [];
+  for (let i = 1; i <= readerState.totalPages; i++) {
+    if ((readerState.pageTexts[i] || '').includes(q)) matches.push(i);
+  }
+  if (!matches.length) { countEl.textContent = 'No matches'; return; }
+  readerState.searchMatches = matches;
+  readerState.searchIdx = (readerState.searchIdx + 1) % matches.length;
+  const page = matches[readerState.searchIdx];
+  countEl.textContent = (readerState.searchIdx+1) + ' / ' + matches.length + ' pages';
+  scrollToReaderPage(page);
+}
+</script>
+</body>
+</html>
