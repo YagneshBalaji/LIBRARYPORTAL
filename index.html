@@ -1005,11 +1005,18 @@ function openReader(materialId) {
   const saved = getProgress(materialId);
   document.getElementById('reader-title').textContent = m.title;
   document.getElementById('reader-subtitle').textContent = m.subject + ' · ' + m.category;
-  document.getElementById('reader-loading').style.display = 'flex';
-  document.getElementById('reader-error').classList.remove('visible');
-  document.getElementById('reader-scroll-area').innerHTML = '';
-  document.getElementById('reader-scroll-area').appendChild(document.getElementById('reader-loading'));
-  document.getElementById('reader-scroll-area').appendChild(document.getElementById('reader-error'));
+
+  // Keep hold of these nodes BEFORE wiping the scroll area — once cleared via
+  // innerHTML, the originals are destroyed and getElementById would return null.
+  const loadingEl = document.getElementById('reader-loading');
+  const errorEl   = document.getElementById('reader-error');
+  loadingEl.style.display = 'flex';
+  errorEl.classList.remove('visible');
+
+  const scrollArea = document.getElementById('reader-scroll-area');
+  scrollArea.innerHTML = '';
+  scrollArea.appendChild(loadingEl);
+  scrollArea.appendChild(errorEl);
 
   document.body.classList.add('reader-open');
   showPage('page-reader');
